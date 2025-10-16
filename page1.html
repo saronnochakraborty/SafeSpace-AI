@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSpace AI - Your Mental Wellness Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        /* Header/Navigation */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #38ef7d;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .nav a:hover {
+            color: #38ef7d;
+        }
+        
+        .get-started-btn {
+            background-color: transparent;
+            color: #e0e0e0;
+            border: 1px solid #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .get-started-btn:hover {
+            background-color: #38ef7d;
+            border-color: #38ef7d;
+            color: #1a1a1a;
+        }
+        
+        /* Hero Section */
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 100px 60px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .hero-content {
+            max-width: 600px;
+        }
+        
+        .hero-title {
+            font-size: 106px;
+            line-height: 1.1;
+            font-weight: 400;
+            margin-bottom: 30px;
+            color: #f5f5f5;
+            letter-spacing: -2px;
+        }
+        
+        .hero-subtitle {
+            font-size: 24px;
+            color: #b0b0b0;
+            margin-bottom: 40px;
+            line-height: 1.5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .start-btn {
+            background-color: transparent;
+            color: #e0e0e0;
+            border: 1px solid #e0e0e0;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .start-btn:hover {
+            background-color: #38ef7d;
+            border-color: #38ef7d;
+            color: #1a1a1a;
+        }
+    
+        .hero-visual {
+            position: relative;
+            width: 500px;
+            height: 500px;
+        }
+        
+        .flower {
+            position: absolute;
+            top: 0;
+            right: 100px;
+            width: 200px;
+            height: 200px;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .petal {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #38ef7d;
+            border-radius: 50% 0 50% 0;
+        }
+        
+        .petal:nth-child(1) {
+            top: -20px;
+            left: 60px;
+            transform: rotate(0deg);
+        }
+        
+        .petal:nth-child(2) {
+            top: 20px;
+            left: 110px;
+            transform: rotate(72deg);
+        }
+        
+        .petal:nth-child(3) {
+            top: 80px;
+            left: 90px;
+            transform: rotate(144deg);
+        }
+        
+        .petal:nth-child(4) {
+            top: 80px;
+            left: 30px;
+            transform: rotate(216deg);
+        }
+        
+        .petal:nth-child(5) {
+            top: 20px;
+            left: 10px;
+            transform: rotate(288deg);
+        }
+        
+        .flower-center {
+            position: absolute;
+            top: 50px;
+            left: 60px;
+            width: 30px;
+            height: 30px;
+            background: #2d2d2d;
+            border-radius: 50%;
+        }
+        
+        .hand-illustration {
+            position: absolute;
+            bottom: 50px;
+            right: 0;
+            width: 400px;
+            height: 300px;
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .hand-silhouette {
+            position: absolute;
+            bottom: 0;
+            right: 50px;
+            width: 250px;
+            height: 250px;
+            background: #2d2d2d;
+            clip-path: polygon(30% 0%, 70% 0%, 80% 30%, 90% 30%, 90% 45%, 85% 45%, 85% 60%, 80% 60%, 80% 75%, 70% 75%, 65% 100%, 35% 100%, 30% 75%, 20% 75%, 20% 60%, 15% 60%, 15% 45%, 10% 45%, 10% 30%, 20% 30%);
+        }
+        
+        .star {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            color: #2d2d2d;
+            font-size: 20px;
+        }
+        
+        .star:nth-child(1) {
+            top: 20px;
+            right: 80px;
+        }
+        
+        .star:nth-child(2) {
+            top: 120px;
+            right: 200px;
+        }
+        
+        .star:nth-child(3) {
+            bottom: 50px;
+            right: 300px;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        /* Footer */
+        .footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 60px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer a {
+            color: #808080;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: #38ef7d;
+        }
+        
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 60px 30px;
+            }
+            
+            .hero-title {
+                font-size: 72px;
+            }
+            
+            .hero-visual {
+                margin-top: 50px;
+                width: 400px;
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 30px;
+            }
+            
+            .nav {
+                gap: 15px;
+            }
+            
+            .hero-title {
+                font-size: 52px;
+            }
+            
+            .hero-subtitle {
+                font-size: 18px;
+            }
+            
+            .hero-visual {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .hand-illustration {
+                width: 300px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">SafeSpace AI</div>
+        <nav class="nav">
+            <a href="#about">Our Story</a>
+            <a href="#features">Features</a>
+            <a href="#contact">Contact</a>
+            <a href="#signin">Sign in</a>
+            <button class="get-started-btn">Get started</button>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Your safe space for mental wellness</h1>
+            <p class="hero-subtitle">SafeSpace is a gentle corner of the internet where you can talk freely and feel understood. It listens, not judges, picking up on emotions hidden between your words. When things get heavy, it offers comfort, care, or helpful guidance, reminding you that you’re never truly alone in what you’re feeling.</p>
+            <button class="start-btn" onclick="window.location.href='page2.html'">Begin</button>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="flower">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="flower-center"></div>
+            </div>
+            
+            <div class="hand-illustration">
+                <div class="star">✱</div>
+                <div class="star">✱</div>
+                <div class="star">✱</div>
+                <div class="hand-silhouette"></div>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

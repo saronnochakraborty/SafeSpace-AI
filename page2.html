@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSpace AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #1a1a1a;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2a2a2a;
+            padding: 20px 40px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .message.user .avatar {
+            background: #3a3a3a;
+        }
+
+        .message.assistant .avatar {
+            background: #00ff88;
+        }
+
+        .message-content {
+            flex: 1;
+            color: #e0e0e0;
+            line-height: 1.6;
+            word-wrap: break-word;
+            padding: 8px 0;
+            font-size: 15px;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .empty-state-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .empty-state-subtitle {
+            font-size: 16px;
+            color: #888;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: #2a2a2a;
+            border-top: 1px solid #333;
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #444;
+            display: flex;
+            align-items: flex-end;
+            padding: 12px 16px;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #00ff88;
+        }
+
+        #messageInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            max-height: 200px;
+            min-height: 24px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        #messageInput::placeholder {
+            color: #666;
+        }
+
+        .send-button {
+            background: #00ff88;
+            border: none;
+            color: #1a1a1a;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #00dd77;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #333;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">SafeSpace AI</div>
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>Ready to listen</span>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="empty-state">
+            <div class="empty-state-title">Your safe space for mental wellness</div>
+            <div class="empty-state-subtitle">
+                Share what's on your mind. I'm here to listen, not judge, 
+                picking up on emotions hidden between your words.
+            </div>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea 
+                id="messageInput" 
+                placeholder="Type the message you want to analyze......" 
+                rows="1"
+            ></textarea>
+            <button class="send-button" id="sendButton">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+<script>
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:5000';
+
+    // Conversation history array
+    let conversationHistory = [];
+
+    // Emotion groups definition
+    const emotion_groups = { 
+        "positive": ["admiration", "amusement", "approval", "caring", "excitement", "gratitude", "joy", "love", "optimism", "pride", "relief"], 
+        "negative": ["anger", "annoyance", "disapproval", "disappointment", "disgust", "embarrassment", "fear", "grief", "nervousness", "remorse", "sadness"], 
+        "neutral": ["confusion", "curiosity", "realization", "desire", "surprise", "neutral"] 
+    };
+
+    // Track last used response indices for each category
+    let lastResponseIndex = {
+        positive: -1,
+        negative: -1,
+        neutral: -1
+    };
+
+    // Customized messages for each emotion category (8 variations each)
+    const emotionResponses = {
+        positive: [
+            {
+                message: "🌟 Your positive energy is contagious! Keep spreading those wonderful vibes!",
+                action: "Consider journaling about what made you feel this way to remember this moment."
+            },
+            {
+                message: "✨ It's beautiful to see you experiencing such joy! Moments like these are what make life special.",
+                action: "Share your happiness with someone you care about today!"
+            },
+            {
+                message: "🎉 Your optimism and positivity are truly inspiring! The world needs more of this energy.",
+                action: "Take a moment to appreciate this feeling and what brought it to you."
+            },
+            {
+                message: "💫 What a wonderful emotional space you're in! Your positive outlook can brighten someone else's day too.",
+                action: "Consider doing something kind for yourself or others to amplify this feeling."
+            },
+            {
+                message: "🌈 You're radiating happiness and it shows! This kind of positive mindset is powerful.",
+                action: "Capture this moment - take a photo, write it down, or simply pause to fully experience it."
+            },
+            {
+                message: "🌺 The joy you're feeling is well-deserved! Embrace these wonderful emotions fully.",
+                action: "Why not celebrate? Treat yourself to something special or share this good news with loved ones."
+            },
+            {
+                message: "✨ Your enthusiasm is absolutely uplifting! It's refreshing to witness such genuine positivity.",
+                action: "Channel this energy into a project or goal you've been thinking about - momentum is on your side!"
+            },
+            {
+                message: "🎊 What an amazing emotional state to be in! Your positive vibes are making a difference.",
+                action: "Pay it forward - your positive energy could be exactly what someone else needs today."
+            }
+        ],
+        
+        negative: [
+            {
+                message: "I hear you, and it's okay to feel this way. Difficult emotions are part of being human. 💙",
+                resources: [
+                    {
+                        title: "Managing Difficult Emotions",
+                        url: "https://www.psychologytoday.com/us/basics/emotions",
+                        description: "Evidence-based strategies for emotional regulation"
+                    },
+                    {
+                        title: "Mindfulness for Emotional Wellness",
+                        url: "https://www.headspace.com/articles/emotional-health",
+                        description: "Practical mindfulness techniques to process emotions"
+                    }
+                ],
+                action: "Take some deep breaths. Try the 4-7-8 technique: inhale for 4, hold for 7, exhale for 8."
+            },
+            {
+                message: "Your feelings are valid. Remember, tough times don't last, but resilient people do. 🌱",
+                resources: [
+                    {
+                        title: "Building Emotional Resilience",
+                        url: "https://www.verywellmind.com/ways-to-become-more-resilient-2795063",
+                        description: "Strategies to bounce back from adversity"
+                    },
+                    {
+                        title: "Self-Care During Difficult Times",
+                        url: "https://www.mentalhealth.org.uk/explore-mental-health/self-care",
+                        description: "Practical self-care tips for mental wellbeing"
+                    }
+                ],
+                action: "Reach out to a trusted friend or family member. Connection helps."
+            },
+            {
+                message: "It's brave to acknowledge these feelings. You're stronger than you know. 🤗",
+                resources: [
+                    {
+                        title: "Coping with Stress and Anxiety",
+                        url: "https://www.helpguide.org/articles/stress/stress-management.htm",
+                        description: "Practical techniques to manage overwhelming emotions"
+                    },
+                    {
+                        title: "When to Seek Professional Help",
+                        url: "https://www.nami.org/About-Mental-Illness/Warning-Signs-and-Symptoms",
+                        description: "Understanding when extra support might be helpful"
+                    }
+                ],
+                action: "Try a quick mood boost: step outside, listen to calming music, or do 5 minutes of stretching."
+            },
+            {
+                message: "Everyone goes through tough times. Be gentle with yourself right now. 🌸",
+                resources: [
+                    {
+                        title: "Self-Compassion Exercises",
+                        url: "https://self-compassion.org/category/exercises/",
+                        description: "Learning to be kind to yourself during difficult moments"
+                    },
+                    {
+                        title: "Emotional Support Resources",
+                        url: "https://www.7cups.com/",
+                        description: "Free emotional support from trained listeners"
+                    }
+                ],
+                action: "Practice self-compassion: talk to yourself like you would to a good friend."
+            },
+            {
+                message: "I can sense you're going through something difficult. Your emotions matter and deserve attention. 💜",
+                resources: [
+                    {
+                        title: "Understanding and Processing Grief",
+                        url: "https://www.verywellmind.com/understanding-grief-2797560",
+                        description: "Navigating through loss and difficult emotions"
+                    },
+                    {
+                        title: "Grounding Techniques for Anxiety",
+                        url: "https://www.therapistaid.com/therapy-worksheet/grounding-techniques",
+                        description: "Practical exercises to manage overwhelming feelings"
+                    }
+                ],
+                action: "Ground yourself: name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste."
+            },
+            {
+                message: "What you're feeling is real and important. Don't minimize your experience. 🫂",
+                resources: [
+                    {
+                        title: "Dealing with Disappointment",
+                        url: "https://www.psychologytoday.com/us/blog/out-the-darkness/202008/how-cope-disappointment",
+                        description: "Healthy ways to process and move through setbacks"
+                    },
+                    {
+                        title: "Emotional First Aid",
+                        url: "https://www.ted.com/talks/guy_winch_why_we_all_need_to_practice_emotional_first_aid",
+                        description: "TED talk on taking care of your emotional health"
+                    }
+                ],
+                action: "Write down your feelings - journaling can help process difficult emotions safely."
+            },
+            {
+                message: "These challenging emotions will pass. You've overcome difficult times before. 🌊",
+                resources: [
+                    {
+                        title: "Managing Anger Healthily",
+                        url: "https://www.apa.org/topics/anger/control",
+                        description: "Understanding and channeling anger constructively"
+                    },
+                    {
+                        title: "Crisis Support Hotlines",
+                        url: "https://www.opencounseling.com/suicide-hotlines",
+                        description: "24/7 support when you need someone to talk to"
+                    }
+                ],
+                action: "Take a break from whatever is causing stress. Even 5 minutes away can help reset your perspective."
+            },
+            {
+                message: "You don't have to face this alone. Support is available and you deserve it. 🌿",
+                resources: [
+                    {
+                        title: "Finding a Therapist",
+                        url: "https://www.psychologytoday.com/us/therapists",
+                        description: "Directory to find mental health professionals near you"
+                    },
+                    {
+                        title: "Free Mental Health Apps",
+                        url: "https://www.healthline.com/health/mental-health/top-mental-health-apps",
+                        description: "Accessible tools for managing mental wellbeing"
+                    }
+                ],
+                action: "Do something nurturing: take a warm shower, have a comforting meal, or wrap yourself in a cozy blanket."
+            }
+        ],
+        
+        neutral: [
+            {
+                message: "🤔 Life is full of interesting moments! Sometimes the neutral spaces are where the best discoveries happen.",
+                encouragement: "Why not explore something new today? Try a new hobby, recipe, or reach out to an old friend!"
+            },
+            {
+                message: "✨ You're in a calm space - that's a gift! Use this energy to plan something that brings you joy.",
+                encouragement: "Set a small goal for today. It could be as simple as a 10-minute walk or calling someone you care about!"
+            },
+            {
+                message: "🌈 Neutral isn't bad - it's a blank canvas! What would you like to paint on it today?",
+                encouragement: "Try something spontaneous! Dance to your favorite song, or watch a comedy special to lift your spirits."
+            },
+            {
+                message: "💭 Curious or contemplative? These moments often lead to great insights and breakthroughs!",
+                encouragement: "Channel this energy into learning something fascinating or starting a creative project you've been thinking about!"
+            },
+            {
+                message: "🌟 You're in a balanced state - perfect for reflection and planning ahead.",
+                encouragement: "Use this clarity to organize something you've been putting off, or simply enjoy the peace of the moment."
+            },
+            {
+                message: "🎯 Neutral ground is stable ground. It's a great place to reassess and recalibrate your goals.",
+                encouragement: "Make a list of things you're grateful for, or brainstorm ideas for your next adventure!"
+            },
+            {
+                message: "🌸 Sometimes the quiet moments are the most important ones. They allow us to just be.",
+                encouragement: "Practice mindfulness - focus on your breathing and be present. Or try a new podcast or book!"
+            },
+            {
+                message: "💫 You're in observation mode - perfect for noticing the little things that usually pass by.",
+                encouragement: "Take a walk and really observe your surroundings, or start a creative project you've been curious about!"
+            }
+        ]
+    };
+
+    // Function to check for greetings and farewells
+    function checkGreetingOrFarewell(message) {
+        const lowerMsg = message.toLowerCase().trim();
+        
+        // Greeting patterns - matches hi, hello, hey, hiya, etc. with multiple characters
+        const greetingPatterns = [
+            /^h+i+[!\s]*$/i,  // Matches hi, hiii, hiiii, etc. (alone)
+            /^(hello+|hey+|hiya+|howdy+|greetings+)[!\s]*$/i,
+            /^(hi+|hello+|hey+)\s+(there|friend|everyone)[!\s]*$/i,
+        ];
+        
+        // Farewell patterns - matches bye, goodbye, see you, etc. with multiple characters
+        const farewellPatterns = [
+            /^b+y+e+[!\s]*$/i,  // Matches bye, byeee, etc. (alone)
+            /^(goodbye+|see\s*you+|cya+|farewell+|later+)[!\s]*$/i,
+            /^(gtg|gotta\s*go|take\s*care)[!\s]*$/i,
+        ];
+        
+        // Check for greetings
+        for (let pattern of greetingPatterns) {
+            if (pattern.test(lowerMsg)) {
+                return {
+                    type: 'greeting',
+                    responses: [
+                        "Hello! 👋 I'm here to listen and understand how you're feeling. Feel free to share what's on your mind - whether it's something exciting, challenging, or anything in between!",
+                        "Hi there! 🌟 It's great to connect with you. I'm here to help you explore and understand your emotions. What's been on your mind lately?",
+                        "Hey! 😊 Welcome! I'm your emotional wellness companion. Don't hold back - share whatever you're feeling, and I'll be here to support and guide you.",
+                        "Hello friend! 💚 I'm so glad you're here. This is a safe space to express yourself. What would you like to talk about today?",
+                        "Hi! 🌈 Thanks for reaching out. Whether you need to vent, celebrate, or just chat - I'm all ears. What's going on with you?"
+                    ]
+                };
+            }
+        }
+        
+        // Check for farewells
+        for (let pattern of farewellPatterns) {
+            if (pattern.test(lowerMsg)) {
+                return {
+                    type: 'farewell',
+                    responses: [
+                        "Take care and have a wonderful day! 🌟 Remember, I'm here whenever you need to talk. Stay amazing!",
+                        "Goodbye! 👋 Wishing you all the best. May your day be filled with positive moments and peace. See you next time!",
+                        "It was great connecting with you! 💫 Have a fantastic day ahead, and remember to be kind to yourself. Until next time!",
+                        "Farewell! 🌸 I hope our conversation helped. Wishing you joy, peace, and wonderful moments ahead. Take care!",
+                        "See you later! ✨ Go out there and make it a great day. Remember, you're stronger than you think. Bye for now!"
+                    ]
+                };
+            }
+        }
+        
+        return null;
+    }
+    
+    // Track last greeting/farewell response to avoid repeats
+    let lastGreetingIndex = -1;
+    let lastFarewellIndex = -1;
+    
+    function getGreetingOrFarewellResponse(checkResult) {
+        if (!checkResult) return null;
+        
+        const responses = checkResult.responses;
+        let randomIndex;
+        
+        if (checkResult.type === 'greeting') {
+            do {
+                randomIndex = Math.floor(Math.random() * responses.length);
+            } while (randomIndex === lastGreetingIndex && responses.length > 1);
+            lastGreetingIndex = randomIndex;
+        } else {
+            do {
+                randomIndex = Math.floor(Math.random() * responses.length);
+            } while (randomIndex === lastFarewellIndex && responses.length > 1);
+            lastFarewellIndex = randomIndex;
+        }
+        
+        return responses[randomIndex];
+    }
+
+    // Function to get emotion category
+    function getEmotionCategory(emotion) {
+        for (const [category, emotions] of Object.entries(emotion_groups)) {
+            if (emotions.includes(emotion.toLowerCase())) {
+                return category;
+            }
+        }
+        return 'neutral';
+    }
+    function getCustomResponse(detectedEmotions) {
+        let categoryCount = { positive: 0, negative: 0, neutral: 0 };
+        
+        detectedEmotions.forEach(emotion => {
+            const category = getEmotionCategory(emotion);
+            categoryCount[category]++;
+        });
+        
+        let dominantCategory = Object.keys(categoryCount).reduce((a, b) => 
+            categoryCount[a] > categoryCount[b] ? a : b
+        );
+        
+        const responses = emotionResponses[dominantCategory];
+        let randomIndex;
+        
+        // Ensure we don't get the same response twice in a row
+        do {
+            randomIndex = Math.floor(Math.random() * responses.length);
+        } while (randomIndex === lastResponseIndex[dominantCategory] && responses.length > 1);
+        
+        // Update the last used index for this category
+        lastResponseIndex[dominantCategory] = randomIndex;
+        
+        const selectedResponse = responses[randomIndex];
+        
+        return {
+            category: dominantCategory,
+            detectedEmotions: detectedEmotions,
+            ...selectedResponse
+        };
+    }
+
+    // Function to format the response for display
+    function formatEmotionResponse(result) {
+        if (result.success && result.emotions && result.emotions.length > 0) {
+            const response = getCustomResponse(result.emotions);
+            
+            let responseHTML = `<div class="emotion-detection">
+                <p><strong>💭 Detected emotions:</strong> ${result.emotions.join(', ')}</p>
+            </div>`;
+            
+            responseHTML += `<div class="emotion-response ${response.category}">`;
+            responseHTML += `<p class="emotion-message">${response.message}</p>`;
+            
+            if (response.category === 'negative' && response.resources) {
+                responseHTML += `<div class="resources">
+                    <h4>💡 Helpful Resources:</h4>
+                    <ul>`;
+                response.resources.forEach(resource => {
+                    responseHTML += `<li>
+                        <a href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.title}</a>
+                        <p class="resource-desc">${resource.description}</p>
+                    </li>`;
+                });
+                responseHTML += `</ul></div>`;
+            }
+            
+            if (response.category === 'neutral' && response.encouragement) {
+                responseHTML += `<p class="encouragement"><strong>💪 Try this:</strong> ${response.encouragement}</p>`;
+            }
+            
+            if (response.action) {
+                responseHTML += `<p class="action-tip"><strong>✨ Quick tip:</strong> ${response.action}</p>`;
+            }
+            
+            responseHTML += `</div>`;
+            
+            return responseHTML;
+        } else {
+            return '<p>No strong emotions detected in your message. 😊</p>';
+        }
+    }
+
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    sendButton.addEventListener('click', sendMessage);
+
+    // Main function to get backend response with timeout
+    async function getBackendResponse(userMessage) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: userMessage,
+                    history: conversationHistory,
+                    threshold: 0.85
+                }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data;
+            
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                console.error('Request timeout:', error);
+                return { success: false, error: 'Request timed out. Please try again.' };
+            }
+            
+            console.error('Backend error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        const emptyState = chatContainer.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        addMessage(message, 'user');
+
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+
+        // Check for greeting or farewell first
+        const greetingCheck = checkGreetingOrFarewell(message);
+        
+        if (greetingCheck) {
+            // Handle greeting/farewell without loading indicator
+            const response = getGreetingOrFarewellResponse(greetingCheck);
+            addMessage(`<p>${response}</p>`, 'assistant');
+            
+            conversationHistory.push({ 
+                role: 'user', 
+                content: message 
+            });
+            conversationHistory.push({ 
+                role: 'assistant', 
+                content: response 
+            });
+            
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+            return;
+        }
+
+        // Regular emotion analysis flow
+        const loadingMsg = addMessage(
+            '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>', 
+            'assistant'
+        );
+
+        try {
+            const result = await getBackendResponse(message);
+            
+            loadingMsg.remove();
+
+            if (result.success && result.emotions) {
+                const formattedResponse = formatEmotionResponse(result);
+                addMessage(formattedResponse, 'assistant');
+                
+                conversationHistory.push({ 
+                    role: 'user', 
+                    content: message 
+                });
+                conversationHistory.push({ 
+                    role: 'assistant', 
+                    content: formattedResponse 
+                });
+            } else {
+                addMessage(`<p class="error">❌ Error: ${result.error || 'Failed to analyze message'}</p>`, 'assistant');
+            }
+        } catch (error) {
+            loadingMsg.remove();
+            addMessage(`<p class="error">❌ Unexpected error: ${error.message}</p>`, 'assistant');
+            console.error('Unexpected error in sendMessage:', error);
+        } finally {
+            // Always re-enable input, even if there was an error
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messageInput.focus();
+        }
+    }
+
+    function addMessage(content, role) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = role === 'user' ? '👤' : '🌱';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(contentDiv);
+        chatContainer.appendChild(messageDiv);
+        
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        return messageDiv;
+    }
+
+    async function checkConnection() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`);
+            const data = await response.json();
+            console.log('✓ Backend connected:', data.status);
+            console.log('Model:', data.model);
+            return true;
+        } catch (error) {
+            console.error('✗ Backend not connected:', error.message);
+            console.error('Make sure Flask server is running on http://localhost:5000');
+            return false;
+        }
+    }
+
+    checkConnection();
+</script>
+</html>
