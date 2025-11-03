@@ -52,7 +52,7 @@ It listens, understands, and responds with empathy — helping you reflect on yo
    ```
 
 3. **Open the interface**
-   - Launch `DelhiTechFest.html` in your browser.
+   - Launch `page1.html` in your browser.
    - Click **Begin** to start chatting on the `page2.html` page.
 
 4. **Start sharing**  
